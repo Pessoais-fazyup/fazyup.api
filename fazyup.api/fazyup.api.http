@@ -1,0 +1,6 @@
+@fazyup.api_HostAddress = http://localhost:5057
+
+GET {{fazyup.api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
