@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("fazyup.api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+10431d2b4de7b85a85c8e0217803d33a5b059167")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f3c041963ac0c6a5ba5847a4d92a3d8f90156792")]
 [assembly: System.Reflection.AssemblyProductAttribute("fazyup.api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("fazyup.api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
