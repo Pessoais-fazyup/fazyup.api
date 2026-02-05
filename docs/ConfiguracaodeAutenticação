@@ -1,177 +1,215 @@
-﻿
-# Tutorial 02 — Entendendo a Configuração de Autenticação com JWT
+﻿# Tutorial 02 — Entendendo a Configuração de Autenticação com JWT
 
-Este documento explica **como funciona a configuração de autenticação JWT no projeto**, de forma **conceitual e didática**, pensando em alguém que acabou de chegar no código.
+Este documento explica **como funciona a configuração de autenticação JWT no projeto**, de forma **conceitual e didática**, pensado para quem **acabou de chegar no código**.
 
-O objetivo **não é ensinar a escrever o código**, mas entender **o que precisa existir**, **por que existe** e **como tudo se conecta**.
+> 🎯 **Objetivo**: não ensinar a escrever código, mas explicar **o que precisa existir**, **por que existe** e **como tudo se conecta** dentro da arquitetura da API.
+
+
+## Por que existe autenticação JWT
+
+Em uma API moderna, é necessário garantir que:
+
+* Apenas usuários autenticados acessem determinados endpoints
+* O servidor saiba **quem está fazendo a requisição**
+* O sistema seja **seguro**, **performático** e **escalável**
+
+O **JWT (JSON Web Token)** resolve isso permitindo que a API gere um **token assinado**, que representa a identidade do usuário autenticado.
+
+Esse token é enviado pelo cliente em **todas as requisições protegidas**, normalmente através do header:
+
+```
+Authorization: Bearer <token>
+```
 
 ---
 
-## Visão geral: por que existe autenticação JWT
+## Visão geral da arquitetura
 
-Em uma API, é necessário garantir que:
+De forma simplificada, o fluxo funciona assim:
 
-* Apenas usuários autenticados acessem certos endpoints
-* O servidor saiba **quem está fazendo a requisição**
-* O sistema seja seguro e escalável
+1. O usuário realiza login
+2. A API valida as credenciais
+3. Um JWT é gerado
+4. O cliente armazena o token
+5. O token é enviado em cada requisição protegida
+6. A API valida o token antes de permitir o acesso
 
-O **JWT (JSON Web Token)** resolve isso permitindo que a API gere um token que representa o usuário autenticado.
-
-Esse token é enviado pelo cliente em cada requisição protegida.
+> 🔐 A API **não mantém sessão**: toda requisição se prova sozinha através do token.
 
 ---
 
 ## Onde ficam as configurações do JWT
 
-As configurações de autenticação ficam na pasta:
+As configurações relacionadas ao JWT ficam centralizadas em:
 
 ```
 Shared/Configs
 ```
 
-👉 Essa pasta existe para concentrar **configurações globais**, que não pertencem a uma funcionalidade específica.
+Essa pasta existe para agrupar **configurações globais da aplicação**, que:
 
-Isso evita espalhar valores sensíveis e regras de configuração pelo projeto.
+* Não pertencem a uma funcionalidade específica
+* São reutilizadas em vários pontos do sistema
+* Podem conter informações sensíveis
 
----
-
-## O papel da classe de configuração (JwtConfiguration)
-
-A classe de configuração representa **os dados necessários para gerar e validar um token JWT**.
-
-Ela não gera token, não valida token e não contém regra de negócio.
-
-Ela existe apenas para:
-
-* Definir quais configurações o sistema precisa
-* Permitir que esses valores venham do `appsettings.json` ou variáveis de ambiente
-
-### O que normalmente é configurado
-
-* **Secret**: chave usada para assinar o token
-* **Emitter (Issuer)**: quem está emitindo o token (a própria API)
-* **ValidIn (Audience)**: quem pode usar o token
-* **ExpirationHours**: tempo de validade do token
-
-👉 Separar isso em uma classe deixa o sistema mais seguro e organizado.
+> 👉 Centralizar configurações evita duplicação, melhora a segurança e facilita manutenção.
 
 ---
 
-## Como a aplicação carrega essas configurações
+## Classe de configuração: `JwtConfiguration`
 
-No início da aplicação (Program.cs), o projeto:
+A classe `JwtConfiguration` representa **os dados necessários para gerar e validar um JWT**.
 
-* Define onde estão os arquivos de configuração
+Ela **não**:
+
+* Gera token
+* Valida token
+* Possui regra de negócio
+
+Ela existe apenas para **modelar as configurações** que o sistema precisa.
+
+### Informações normalmente configuradas
+
+| Configuração      | Descrição                                  |
+| ----------------- | ------------------------------------------ |
+| `Secret`          | Chave usada para assinar o token           |
+| `Issuer`          | Quem está emitindo o token (a própria API) |
+| `Audience`        | Quem pode consumir o token                 |
+| `ExpirationHours` | Tempo de validade do token                 |
+
+> 🔑 Separar isso em uma classe torna o sistema mais organizado e seguro.
+
+---
+
+## Carregamento das configurações na aplicação
+
+No início da aplicação (`Program.cs`), o ASP.NET Core:
+
+* Define as fontes de configuração
 * Carrega o `appsettings.json`
-* Carrega o arquivo específico do ambiente (Development, Production, etc.)
-* Permite sobrescrever valores via variáveis de ambiente
+* Carrega o arquivo específico do ambiente (`Development`, `Production`, etc.)
+* Permite sobrescrever valores via **variáveis de ambiente**
 
-👉 Isso torna o sistema flexível e pronto para produção.
+Isso garante que:
+
+* O mesmo código funcione em vários ambientes
+* Segredos não fiquem fixos no repositório
+
+> 🚀 Esse é um padrão essencial para aplicações prontas para produção.
 
 ---
 
 ## Injeção de dependência das configurações
 
-Depois de carregar as configurações, elas são **registradas no container de dependências**.
+Após o carregamento, as configurações de JWT são **registradas no container de dependência**.
 
 Isso permite que qualquer parte do sistema:
 
-* Acesse as configurações de forma segura
+* Acesse as configurações de forma tipada
 * Não dependa diretamente de arquivos de configuração
 
-👉 Essa abordagem facilita testes e manutenção.
+Benefícios diretos:
+
+* Código desacoplado
+* Facilidade de testes
+* Manutenção simplificada
 
 ---
 
-## O papel do TokenService
+## Responsabilidade do `TokenService`
 
-O `TokenService` é o responsável por **gerar o token JWT**.
+O `TokenService` é o componente responsável por **gerar o JWT**.
 
 Ele:
 
-* Recebe as configurações já prontas
-* Cria as informações que vão dentro do token (claims)
-* Define tempo de expiração
+* Recebe as configurações prontas
+* Define as **claims** (informações do usuário)
+* Define o tempo de expiração
 * Assina o token com a chave secreta
 
-👉 Ele **não acessa banco de dados** e **não valida usuário**.
+Ele **não**:
 
-Ele apenas transforma informações do usuário em um token seguro.
+* Acessa banco de dados
+* Valida credenciais
+* Decide permissões
+
+> 🎟️ Ele apenas transforma dados confiáveis em um token seguro.
 
 ---
 
 ## Por que usar um serviço separado para o token
 
-Separar a geração do token em um serviço traz vantagens importantes:
+Separar a geração do token em um serviço específico traz vantagens claras:
 
-* Código mais organizado
-* Responsabilidades bem definidas
-* Facilita testes
-* Facilita mudanças futuras na autenticação
+* Responsabilidade única
+* Código mais legível
+* Facilidade de testes unitários
+* Possibilidade de trocar JWT por outro mecanismo no futuro
 
-👉 Isso segue o princípio de responsabilidade única.
+> 📐 Esse design segue diretamente o **Princípio da Responsabilidade Única (SRP)**.
 
 ---
 
-## Onde o middleware de autenticação entra
+## Middleware de autenticação e autorização
 
-Após a aplicação estar configurada, o pipeline da API inclui:
+Após a configuração, o pipeline da aplicação inclui:
 
-* Autenticação
-* Autorização
+* **Autenticação**
+* **Autorização**
 
 Isso significa que:
 
-* Toda requisição passa por uma validação de token
+* Toda requisição passa por validação de token
 * Endpoints protegidos exigem um JWT válido
 
-👉 O desenvolvedor controla isso usando atributos nos controllers.
+O controle de acesso é feito através de:
+
+* Atributos nos controllers
+* Policies e roles
+
+> 🧠 A segurança fica centralizada no pipeline, não espalhada pelo código.
 
 ---
 
-## Relação com o banco de dados
+## Relação entre JWT e banco de dados
 
-O JWT **não depende diretamente do banco**.
+O JWT **não depende diretamente do banco de dados**.
 
-O banco existe para:
+O banco é usado para:
 
 * Armazenar usuários
-* Armazenar permissões (roles)
+* Armazenar permissões e roles
 
-O token apenas carrega:
+O token carrega apenas:
 
 * Identidade do usuário
 * Informações necessárias para autorização
 
-👉 Isso torna o sistema mais rápido e escalável.
+> ⚡ Isso reduz acessos ao banco e melhora a escalabilidade da API.
 
 ---
 
-## Por que esse modelo foi escolhido
+## Motivos da escolha desse modelo
 
-Esse padrão de configuração e autenticação foi escolhido porque:
+Esse padrão foi escolhido porque:
 
-* É amplamente usado no mercado
-* Funciona bem com APIs REST
+* É amplamente adotado no mercado
+* Funciona muito bem com APIs REST
 * É seguro quando bem configurado
 * Escala facilmente
-* Se integra perfeitamente com ASP.NET Core
+* Integra perfeitamente com ASP.NET Core
 
 ---
 
 ## Conclusão
 
-A configuração de JWT no projeto foi pensada para ser:
+A configuração de autenticação JWT no projeto foi pensada para ser:
 
-* Segura
-* Organizada
-* Fácil de entender
-* Fácil de manter
+* 🔐 Segura
+* 🧱 Bem organizada
+* 🧠 Fácil de entender
+* 🛠️ Fácil de manter
 
-Separar **configuração**, **serviço de token** e **pipeline da aplicação** garante um sistema profissional e preparado para crescimento.
+A separação entre **configuração**, **serviço de token** e **pipeline da aplicação** garante um sistema profissional e preparado para crescimento.
 
-No próximo tutorial, o foco pode ser:
-➡️ **Fluxo de autenticação: do login ao acesso ao endpoint protegido** 🔐
-
-
-
+➡️ **Próximo tutorial sugerido**: *Fluxo de autenticação — do login ao acesso a um endpoint protegido* 🔓

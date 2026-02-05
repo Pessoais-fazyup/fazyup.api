@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: fazyup.postgres
+    environment:
+      POSTGRES_DB: fazyupdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: fazyup.api/Dockerfile
+    container_name: fazyup.api
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=fazyupdb;Username=postgres;Password=postgres
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
