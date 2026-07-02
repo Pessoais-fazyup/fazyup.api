@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using fazyup.api.Shared.Configs;
 using Microsoft.Extensions.Options;
+using fazyup.api.Shared.Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
 
 namespace fazyup.api.Feature.User

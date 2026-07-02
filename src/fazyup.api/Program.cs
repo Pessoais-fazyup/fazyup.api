@@ -1,4 +1,6 @@
 ﻿using fazyup.api.Database;
+using fazyup.api.Feature.Admin;
+using fazyup.api.Repository;
 using fazyup.api.Shared.Ioc;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +19,9 @@ builder.Services.AddDbContext<FazyupDbContext>(options =>
     )
 );
 
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<CreateAdminUseCase>();
 builder.Services.AddServicesInjection(builder.Configuration);
 
 builder.Services.AddControllers();

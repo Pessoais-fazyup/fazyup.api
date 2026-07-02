@@ -1,26 +1,20 @@
-﻿using fazyup.api.Repository;
+﻿using fazyup.api.Feature.User;
+using fazyup.api.Repository;
 using fazyup.api.Shared.Domain.Entities;
-using Microsoft.Extensions.Logging;
 
-namespace fazyup.api.Feature.User;
+namespace fazyup.api.Feature.Admin;
 
-public class CreateUserUseCase
+public class CreateAdminUseCase
 {
     private readonly IUserRepository _repository;
-    private readonly ILogger<CreateUserUseCase> _logger;
 
-    public CreateUserUseCase(
-        IUserRepository repository,
-        ILogger<CreateUserUseCase> logger)
+    public CreateAdminUseCase(IUserRepository repository)
     {
         _repository = repository;
-        _logger = logger;
     }
 
-    public async Task<UserOutput> ExecuteAsync(UserInput input)
+    public async Task<UserOutput> ExecuteAsync(AdminInput input)
     {
-        _logger.LogInformation("Criando usuário {Email}", input.Email);
-
         var emailExists = await _repository.EmailAlreadyExistsAsync(input.Email);
 
         if (emailExists)
@@ -31,7 +25,7 @@ public class CreateUserUseCase
             input.Email
         );
 
-        user.AddRole("user");
+        user.AddRole("admin");
 
         await _repository.AddAsync(user);
 

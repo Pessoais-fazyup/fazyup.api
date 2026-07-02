@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using fazyup.api.Shared.Domain.Entities;
 
 public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
 {

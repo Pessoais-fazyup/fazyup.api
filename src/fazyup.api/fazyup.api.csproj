@@ -24,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Feature\Admin\" />
     <Folder Include="Feature\Mkaer\" />
   </ItemGroup>
 

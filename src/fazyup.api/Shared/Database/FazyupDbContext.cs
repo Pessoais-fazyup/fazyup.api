@@ -1,6 +1,7 @@
 ﻿using fazyup.api.Shared.Database.Configuration;
 using fazyup.api.Shared.Domain;
 using Microsoft.EntityFrameworkCore;
+using fazyup.api.Shared.Domain.Entities;
 
 namespace fazyup.api.Database
 {
@@ -13,6 +14,7 @@ namespace fazyup.api.Database
 
         public DbSet<User> Users { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
+        public object Admin { get; internal set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
